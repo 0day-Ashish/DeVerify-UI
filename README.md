@@ -2,7 +2,7 @@
 
 DeVerify is an AI-assisted judging assistant for hackathons. It verifies submissions, helps judges score objectively, and provides admin tooling to manage hackathons and submissions.
 
-![Screenshot: Landing page](./image.png)
+![Screenshot: Landing page](./public/image.png)
 
 ## Key features
 - Automated submission analysis and scoring
