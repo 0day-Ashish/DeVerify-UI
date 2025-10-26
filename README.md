@@ -47,11 +47,13 @@ NEXT_PUBLIC_BASE_URL=http://localhost:3000  # optional, for previews / links
 
 Restart dev server after updating env vars.
 
-## Database
-Collections used (example):
-- `hackathons`
+MONGODB_URI=mongodb://localhost:27017
+## Database Name - hackathons
+Collections used :
+- `hack-info`
 - `submissions`
-- `subscriptions`
+- `ai-score`
+- `subscription-emails`
 
 Recommended index for subscriptions:
 ```js
