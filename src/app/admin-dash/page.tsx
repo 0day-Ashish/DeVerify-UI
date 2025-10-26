@@ -12,10 +12,8 @@ import { ethers } from "ethers";
 type Hackathon = {
   id: string;
   name: string;
-  startDate: string; // ISO-ish date
-  endDate: string;
+  submission_period: string; // ISO-ish date
   status: "upcoming" | "running" | "ended";
-  testHack: boolean;
   tags?: string[];
 };
 
@@ -100,12 +98,13 @@ export default function AdminDashboardPage() {
     };
   }, []);
 
-  const [hackathons] = useState<Hackathon[]>(MOCK_HACKATHONS);
+  const [hackathons, setHackathons] = useState<Hackathon[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>(MOCK_SUBMISSIONS);
   const [hackSearch, setHackSearch] = useState("");
   const [selectedHackathonId, setSelectedHackathonId] = useState<string | "all">("all");
   const [submissionSearch, setSubmissionSearch] = useState("");
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
+  const [loadingHackathons, setLoadingHackathons] = useState(false);
 
   // Filter logic unchanged
   const filteredHacks = useMemo(
@@ -166,6 +165,45 @@ export default function AdminDashboardPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectedAccount]);
+
+  // Fetch real hackathons when admin is connected (only in client)
+  useEffect(() => {
+    if (!isAdmin) {
+      return;
+    }
+
+    let mounted = true;
+    setLoadingHackathons(true);
+    fetch("/api/hackathons")
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to fetch");
+        return r.json();
+      })
+      .then((data: any[]) => {
+        if (!mounted) return;
+        // Normalize backend shape: ensure `id`, `name`, `tags`, etc. exist
+        const normalized: Hackathon[] = (data || []).map((h) => ({
+          id: h.id ?? h._id ?? String(h._id ?? Math.random().toString(36).slice(2)),
+          name: h.name ?? h.title ?? "Untitled Hackathon",
+          submission_period: h.submission_period ?? h.submissionPeriod ?? "",
+          status: h.status ?? "upcoming",
+          tags: h.tags ?? [],
+        }));
+        setHackathons(normalized);
+        setLoadingHackathons(false);
+      })
+      .catch((err) => {
+        console.error("fetch hackathons", err);
+        if (mounted) {
+          setLoadingHackathons(false);
+          setWalletError?.("Failed to load hackathons");
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [isAdmin]);
 
   async function handleAccountsChanged(accounts: string[]) {
     if (!accounts || accounts.length === 0) {
@@ -341,7 +379,7 @@ export default function AdminDashboardPage() {
                 DV
               </div>
               <div>
-                <h1 className="text-lg font-semibold">Deverify Admin</h1>
+                <h1 className="text-lg font-semibold"><span className="">DeVerify</span> Admin</h1>
                 <p className="text-sm text-gray-400">Manage hackathons & submissions</p>
               </div>
             </div>
@@ -388,29 +426,74 @@ export default function AdminDashboardPage() {
         <main className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Hackathon list */}
-            <section className="col-span-1 border border-white/40 rounded-lg p-4 bg-white/5 backdrop-blur-md transition">
-              {/* ... same UI as original (omitted for brevity in this file) ... */}
+            <section className="col-span-1 border border-white/40 rounded-lg p-4 bg-white/5 backdrop-blur-md transition" style={{ cursor: 'none' }}>
               <div className="flex items-center justify-between mb-2">
                 <h2 className="text-sm font-semibold">Hackathons</h2>
                 <div className="text-xs text-gray-400">{filteredHacks.length} shown</div>
               </div>
-              {/* (rest of left column UI) */}
+
+              <div className="mb-3 flex gap-2">
+                <input
+                  value={hackSearch}
+                  onChange={(e) => setHackSearch(e.target.value)}
+                  placeholder="Search hackathons (name, tag)"
+                  className="flex-1 px-3 py-2 border border-white/30 rounded-md text-sm bg-transparent text-white placeholder-gray-400"
+                />
+                {/* removed the select dropdown — only search bar remains */}
+              </div>
+
+              <div className="space-y-2 max-h-[60vh] overflow-auto">
+                {loadingHackathons ? (
+                  <div className="text-sm text-gray-300">Loading hackathons…</div>
+                ) : filteredHacks.length === 0 ? (
+                  <div className="text-sm text-gray-500">No hackathons found.</div>
+                ) : (
+                  filteredHacks.map((h) => (
+                    <div
+                      key={h.id}
+                      onClick={() => setSelectedHackathonId(h.id)}
+                      className={`p-3 rounded cursor-pointer transition ${selectedHackathonId === h.id ? "bg-white/10" : "hover:bg-white/5"}`}
+                    >
+                      <div className="text-sm font-medium">{h.name}</div>
+                      <div className="text-xs">
+                        <span className="text-gray-400">{h.submission_period || "—"}</span>
+                        <span className="text-gray-400"> • </span>
+                        <span className={h.status === 'upcoming' ? 'text-green-400' : 'text-red-400'}>
+                         
+                          {h.status}
+                        
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </section>
 
             {/* Submissions list */}
-            <section className="col-span-2 border border-white/40 rounded-lg p-4 bg-white/5 backdrop-blur-md transition">
+            <section className="col-span-2 border border-white/40 rounded-lg p-4 bg-white/5 backdrop-blur-md transition" style={{ cursor: 'none' }}>
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold">
                   Submissions {selectedHackathonId !== 'all' && <span className="text-xs text-gray-400">• {hackathons.find((h) => h.id === selectedHackathonId)?.name}</span>}
                 </h2>
 
-                <div className="flex items-center space-x-2">
-                  <input value={submissionSearch} onChange={(e) => setSubmissionSearch(e.target.value)} placeholder="Search submissions (project, repo, submitter)" className="px-3 py-2 border border-white/40 rounded-md text-sm bg-transparent text-white placeholder-gray-400 focus:border-indigo-400 focus:shadow-[0_0_10px_#6366f1]" />
-                  <button onClick={() => { setSubmissionSearch(''); setSelectedHackathonId('all'); }} className="px-3 py-2 border border-white/40 rounded-md text-sm text-white hover:shadow-[0_0_10px_#9ca3af] transition-all">Reset</button>
+                <div className="flex items-center space-x-2 cursor-none">
+                  <input
+                    value={submissionSearch}
+                    onChange={(e) => setSubmissionSearch(e.target.value)}
+                    placeholder="Search submissions (project, repo, submitter)"
+                    className="flex-1 px-5 py-2 border border-white/40 rounded-md text-sm bg-transparent text-white placeholder-gray-400 focus:border-indigo-400 focus:shadow-[0_0_10px_#6366f1]"
+                  />
+                  <button
+                    onClick={() => { setSubmissionSearch(''); setSelectedHackathonId('all'); }}
+                    className="px-4 py-2 min-w-[110px] border border-white/40 rounded-md text-sm text-white hover:shadow-[0_0_10px_#9ca3af] transition-all"
+                  >
+                    Reset
+                  </button>
                 </div>
               </div>
 
-              <div className="mt-3 overflow-auto">
+              <div className="mt-3 overflow-auto" style={{ cursor: 'none' }}>
                 <table className="min-w-full divide-y divide-white/20">
                   <thead>
                     <tr>
