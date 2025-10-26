@@ -8,6 +8,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import CountUp from "react-countup";
 import { useInView } from "react-intersection-observer";
 import { FaDiscord, FaMedium, FaTwitter as FaXTwitter, FaGithub } from "react-icons/fa";
+import LogoLoop from '@/components/LogoLoop';
 
 export default function Home() {
 
@@ -18,6 +19,24 @@ export default function Home() {
   const [cursor, setCursor] = useState({ x: 0, y: 0 });
   const [cursorBlack, setCursorBlack] = useState(false);
   const [cursorExpand, setCursorExpand] = useState(true);
+
+  const techLogos = [
+  { src: "/eth.png", alt: "Company 1" },
+  { src: "/mlh.png", alt: "Company 2" },
+  { src: "/valora.png", alt: "Company 3" },
+  { src: "/alchemy.png", alt: "Company 4" },
+  { src: "/devpost.png", alt: "Company 5" },
+];
+
+const tech2Logos = [
+  { src: "/eth.png", alt: "Company 1" },
+  { src: "/mlh.png", alt: "Company 2" },
+  { src: "/valora.png", alt: "Company 3" },
+  { src: "/alchemy.png", alt: "Company 4" },
+  { src: "/devpost.png", alt: "Company 5" },
+];
+  
+
 
   useEffect(() => {
     let animationFrameId: number;
@@ -537,6 +556,52 @@ export default function Home() {
           <div className="bento-sub">Total funding awarded to projects</div>
         </div>
       </div>
+      
+      {/* Move partners section OUTSIDE the absolutely positioned/overflow-hidden parent */}
+      <div className="partners max-w-7xl mx-auto px-6 lg:px-8 py-16 lg:py-24 mt-50" style={{ position: "relative", zIndex: 1 }}>
+        <div className="flex flex-col lg:flex-row items-start lg:items-center gap-10">
+          {/* Left: headline */}
+          <div className="flex-1 min-w-0">
+            <h2 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-serif leading-tight text-white">
+              The <em className="italic font-small">purpose-driven</em> blockchain
+              <br />
+              ecosystem building a trillion-dollar
+              <br />
+              onchain economy
+            </h2>
+          </div>
+          {/* Right: CTA */}
+          <div className="w-full lg:w-auto shrink-0">
+            <a
+              href="#explore"
+              className="inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-semibold tracking-wide bg-transparent border border-white hover:bg-white hover:text-black transition text-white cursor-none"
+              aria-label="Explore the Celo ecosystem"
+            >
+              Explore the Celo ecosystem →
+            </a>
+          </div>
+        </div>
+      </div>
+      <LogoLoop
+        logos={techLogos}
+        speed={120}
+        direction="left"
+        logoHeight={68}
+        gap={120}
+        scaleOnHover
+        ariaLabel="Technology partners"
+      />
+      <div className="mt-15 mb-50">
+      <LogoLoop
+        logos={techLogos}
+        speed={120}
+        direction="right"
+        logoHeight={68}
+        gap={120}
+        scaleOnHover
+        ariaLabel="Technology partners"
+      />
+      </div>
       <footer className="w-full border-t border-white/20 text-white backdrop-blur-md bg-transparent cursor-none">
         <style>
           {`
@@ -619,6 +684,8 @@ export default function Home() {
         </div>
       </footer>
       </div>
+      
     </>
   );
 }
+
