@@ -78,6 +78,9 @@ npm run start
 
 ## Wallet & Admin access
 - Admin access requires connecting a wallet and matching `NEXT_PUBLIC_ADMIN_ADDRESS` and chain = Celo Sepolia (chain id hex `0xaa044c`).
+- Contract Address - '0x015ffC4Bb2E5238A1646EC8860030bfb86650Ad2'
+- Celo Sepolia Explorer - https://celo-sepolia.blockscout.com/
+- Sourcify Verfication and AIB generation - https://repo.sourcify.dev/11142220/0x015ffC4Bb2E5238A1646EC8860030bfb86650Ad2
 
 ## Contributing
 - Fork, create a feature branch, open a PR with description and screenshots.
